@@ -5,9 +5,12 @@ enum OrbitReadsPersistenceController {
         let model = makeModel()
         let container = NSPersistentContainer(name: storeName, managedObjectModel: model)
         var loadError: Error?
+        let lock = DispatchSemaphore(value: 0)
         container.loadPersistentStores { _, error in
             loadError = error
+            lock.signal()
         }
+        lock.wait()
         if loadError != nil { return nil }
         container.viewContext.automaticallyMergesChangesFromParent = true
         return container

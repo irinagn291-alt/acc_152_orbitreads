@@ -4,7 +4,7 @@ enum OrbitReadsMetadata {
     static let name = "Orbit Reads"
     static let tagline = "Chart the galaxy. One planet per book."
     static let version = "3.0.0-orbit"
-    static let seedKey = "com.orbitreads.didSeed.v3"
+    static let seedKey = "com.orbitreads.didSeed.v5"
     static let cameraPrompt = "Initiate warp tunnel to discover new planets"
     static let captain = "Cmdr. Vega"
     static let unit = "fuel units"
@@ -13,7 +13,7 @@ enum OrbitReadsMetadata {
     static let discoverTitle = "Open Library Galaxy"
     static let mapWidth: Double = 2400
     static let mapHeight: Double = 2400
-    static let websiteHost = "warpages.pro"
+    static let websiteHost = "warpages-flightdeck.pro"
     static var privacyPolicyURL: URL { URL(string: "https://\(websiteHost)/privacy-policy")! }
     static var contactUsURL: URL { URL(string: "https://\(websiteHost)/contact-us")! }
 }

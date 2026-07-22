@@ -1,7 +1,9 @@
-import Foundation
+import XCTest
+@testable import OrbitReads
 
-enum PlacePlanetUseCaseTests {
-    static func run() {
+@MainActor
+final class PlacePlanetUseCaseTests: XCTestCase {
+    func testPlaceNewAssignsSectorAndCoordinates() {
         let sector = GalaxySector(
             id: UUID(),
             name: "Sci Sector",
@@ -36,13 +38,16 @@ enum PlacePlanetUseCaseTests {
             sectors: [sector],
             existing: []
         )
-        precondition(placed.positionX != 0 || placed.positionY != 0)
-        precondition(placed.sectorId == sector.id)
+        XCTAssertEqual(placed.sectorId, sector.id)
+        XCTAssertTrue(placed.positionX != 0 || placed.positionY != 0)
+        XCTAssertGreaterThan(placed.orbitRadius, 0)
+        XCTAssertFalse(placed.planetClass.isEmpty)
     }
 }
 
-enum ContributeFuelUseCaseTests {
-    static func run() async throws {
+@MainActor
+final class ContributeFuelUseCaseTests: XCTestCase {
+    func testContributeFuelUpdatesStateAndExpedition() async throws {
         let repo = OrbitReadsMemoryRepository()
         let sectorId = UUID()
         let expedition = Expedition(
@@ -57,8 +62,26 @@ enum ContributeFuelUseCaseTests {
         try await repo.saveExpedition(expedition)
         let useCase = ContributeFuelUseCase(repository: repo)
         let state = try await useCase.execute(amount: 25, expeditionId: expedition.id)
-        precondition(state.totalFuel >= 25)
+        XCTAssertGreaterThanOrEqual(state.totalFuel, 25)
         let updated = try await repo.fetchExpeditions().first { $0.id == expedition.id }
-        precondition((updated?.fuelCollected ?? 0) >= 35)
+        XCTAssertEqual(updated?.fuelCollected, 35)
+    }
+
+    func testAsteroidBonusAddsExtraFuel() async throws {
+        let repo = OrbitReadsMemoryRepository()
+        let expedition = Expedition(
+            id: UUID(),
+            name: "Bonus Run",
+            targetSectorId: UUID(),
+            fuelRequired: 200,
+            fuelCollected: 0,
+            routeBookIds: [],
+            isUnlocked: false
+        )
+        try await repo.saveExpedition(expedition)
+        let useCase = ContributeFuelUseCase(repository: repo)
+        _ = try await useCase.execute(amount: 20, expeditionId: expedition.id, source: .asteroidBonus)
+        let updated = try await repo.fetchExpeditions().first { $0.id == expedition.id }
+        XCTAssertEqual(updated?.fuelCollected, 30)
     }
 }
